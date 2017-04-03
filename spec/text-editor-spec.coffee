@@ -4868,8 +4868,8 @@ describe "TextEditor", ->
         editor.replaceSelectedText {}, -> '123'
         expect(buffer.lineForRow(0)).toBe '123var quicksort = function () {'
 
-        editor.replaceSelectedText {selectWordIfEmpty: true}, -> 'var'
         editor.setCursorBufferPosition([0])
+        editor.replaceSelectedText {selectWordIfEmpty: true}, -> 'var'
         expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
 
         editor.setCursorBufferPosition([10])
@@ -4881,6 +4881,12 @@ describe "TextEditor", ->
         editor.setSelectedBufferRange([[0, 1], [0, 3]])
         editor.replaceSelectedText {}, -> 'ia'
         expect(buffer.lineForRow(0)).toBe 'via quicksort = function () {'
+
+      it "replaces the selected text and selects the replacement text", ->
+        editor.setSelectedBufferRange([[0, 4], [0, 9]])
+        editor.replaceSelectedText {}, -> 'whatnot'
+        expect(buffer.lineForRow(0)).toBe 'var whatnotsort = function () {'
+        expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [0, 11]]
 
   describe ".transpose()", ->
     it "swaps two characters", ->
@@ -4902,7 +4908,7 @@ describe "TextEditor", ->
         editor.setCursorScreenPosition([0, 1])
         editor.upperCase()
         expect(editor.lineTextForBufferRow(0)).toBe 'ABC'
-        expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [0, 1]]
+        expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 3]]
 
     describe "when there is a selection", ->
       it "upper cases the current selection", ->
@@ -4919,7 +4925,7 @@ describe "TextEditor", ->
         editor.setCursorScreenPosition([0, 1])
         editor.lowerCase()
         expect(editor.lineTextForBufferRow(0)).toBe 'abc'
-        expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [0, 1]]
+        expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 3]]
 
     describe "when there is a selection", ->
       it "lower cases the current selection", ->
@@ -5967,7 +5973,7 @@ describe "TextEditor", ->
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
 
   describe "softWrapAtPreferredLineLength", ->
-    it "soft wraps the editor at the preferred line length unless the editor is narrower", ->
+    it "soft wraps the editor at the preferred line length unless the editor is narrower or the editor is mini", ->
       editor.update({
         editorWidthInChars: 30
         softWrapped: true
@@ -5979,6 +5985,9 @@ describe "TextEditor", ->
 
       editor.update({editorWidthInChars: 10})
       expect(editor.lineTextForScreenRow(0)).toBe 'var '
+
+      editor.update({mini: true})
+      expect(editor.lineTextForScreenRow(0)).toBe 'var quicksort = function () {'
 
   describe "softWrapHangingIndentLength", ->
     it "controls how much extra indentation is applied to soft-wrapped lines", ->
